@@ -7,6 +7,11 @@ using System.Text.Json.Serialization;
 
 public class CPHInline
 {
+
+    // - - - Global Variables - - - //
+
+    const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
+
     // - - - Classes - - - //
 
     public class Quote {
@@ -121,8 +126,7 @@ public class CPHInline
 
     // Purpose: retrieve the text content of the quotes document and return it as a string
         public string RetrieveFileTextContent() {
-        string pathToQuotesDocument = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
-        string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocument);
+        string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocumentGlobal);
         return quotesDocumentTextContent;}
 
     // Purpose: deserialize that string into a list of quote objects and return it
@@ -130,7 +134,7 @@ public class CPHInline
         List<Quote> quotesDocumentAsListOfQuoteObjects = JsonSerializer.Deserialize<List<Quote>>(quotesDocumentTextContent);
         return quotesDocumentAsListOfQuoteObjects;}
 
-    // Purpose: find the highest existing QuoteId in the list, then return the next one as a string
+    // Purpose: find the highest existing QuoteId in the list, then increment by 1 and return updated quote id to user with new quote
     public int GetQuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
         int mostRecentQuoteId = 0;
         foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {if (quote.QuoteId > mostRecentQuoteId) {mostRecentQuoteId = quote.QuoteId;}}
@@ -139,12 +143,26 @@ public class CPHInline
     public void AddQuoteToDocument(List<Quote> quotesDocumentAsListOfQuoteObjects, string[] MessageTextAsArrayOfWords) {
         
         // Keys: QuoteId, MessageTimestamp, ModeratorUsername, QuoteeUsername, GameCategory, QuoteText 
-        QuoteId = GetQuoteId(quotesDocumentAsListOfQuoteObjects);
+        int QuoteId = GetQuoteId(quotesDocumentAsListOfQuoteObjects);
         DateTimeOffset MessageTimestamp = GetMessageTimestamp();        
         string ModeratorUsername = GetModeratorUsername(GetCommandExecutorUsername());
         string quoteeUsername = GetQuoteeUsername(MessageTextAsArrayOfWords);
         string GameCategory = GetGameCategory();
-        string quoteContent = GetQuoteText(MessageTextAsArrayOfWords);}
+        string quoteContent = GetQuoteText(MessageTextAsArrayOfWords);
+        
+        var newQuote = new Quote {
+            QuoteId = QuoteId,
+            MessageTimestamp = MessageTimestamp,
+            ModeratorUsername = ModeratorUsername,
+            QuoteeUsername = quoteeUsername,
+            GameCategory = GameCategory,
+            QuoteText = quoteContent};
+            
+            quotesDocumentAsListOfQuoteObjects.Add(newQuote);
+            
+            string updatedJson = JsonSerializer.Serialize(quotesDocumentAsListOfQuoteObjects, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);
+       }
 
 /*  public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId) {
         // code to find quote by ID
