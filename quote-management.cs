@@ -7,10 +7,14 @@ public class CPHInline
     // - - - Classes - - - //
 
     public class Quote {
-        public DateTimeOffset timestamp {get}
-
+        
+        public string id {get; set;}        
+        public string user {get; set;}
+        public string moderator {get; set;}
+        public string game {get; set;}
+        public DateTimeOffset timestamp {get; set;}       
+        public string quote {get; set;}
     }
-
 
     // - - - Methods - - - //
 
@@ -82,16 +86,11 @@ public class CPHInline
         NextStepsForQuoteCommand(validatedSyntax);
     }
 
-    public void RetrieveFileTextContent() {
+    // Purpose: retrieve the text content of the quotes document and return it as a string
+    public string RetrieveFileTextContent() {
         string pathToQuotesDocument = @"C:\Users\RainstormWander\Stream\streamer-bot-1.0.1\data\quotes_custom.json";
-        
-        try {
-            string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocument);
-            return JsonSerializer.Deserialize<T>(quotesDocumentTextContent);
-            }
-        catch (Exception exception) {
-            CPH.SendMessage($"Error occured: {exception}");
-            }
+        string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocument);
+        return quotesDocumentTextContent;
     }
 
 	public bool Execute()
