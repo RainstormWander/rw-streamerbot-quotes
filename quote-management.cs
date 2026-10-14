@@ -83,11 +83,27 @@ public class CPHInline
 
     // Purpose: execute next step based on validatedSyntax value; if invalid, indicate in chat; in valid, execute next relevant method
     public void NextStepsForQuoteCommand(string validatedSyntax) {
+        
         if (validatedSyntax == "lockedToMods") {CPH.SendMessage("The add quotes command is locked to moderators.");}
+        
         if (validatedSyntax == "noValidatedSyntax") {CPH.SendMessage("Invalid command. Please use '!quote misc' or '!quote find [quote ID]'.");}      
-        if (validatedSyntax == "addQuote") {CPH.SendMessage("Calling method to add quote...");} 
-        if (validatedSyntax == "findMisc") {CPH.SendMessage("Calling method to find a misc quote...");} 
-        if (validatedSyntax == "findId") {CPH.SendMessage("Calling method to locate a specific quote by Id...");}}
+        
+        if ((validatedSyntax == "addQuote") || (validatedSyntax == "findMisc") || (validatedSyntax == "findId")) {
+            string quotesDocumentTextContent = RetrieveFileTextContent();
+            if (validatedSyntax == "addQuote") {
+                CPH.SendMessage("Calling method to add quote...");
+                AddQuoteToDocument(quotesDocumentTextContent);
+            }
+            if (validatedSyntax == "findMisc") {
+                CPH.SendMessage("Calling method to find a misc quote...");
+                FindMiscQuote(quotesDocumentTextContent);
+            } 
+        if (validatedSyntax == "findId") {
+                CPH.SendMessage("Calling method to locate a specific quote by Id...");
+                FindQuoteById(quoteId, quotesDocumentTextContent);
+            }
+        }
+    }
 
     // - - - Methods: Interact with Quotes Document - - - //
 
@@ -98,7 +114,8 @@ public class CPHInline
         return quotesDocumentTextContent;
     }
 
-    public void AddQuoteToDocument(Quote newQuote, string quotesDocumentTextContent) {
+    public void AddQuoteToDocument(string quotesDocumentTextContent) {
+        Quote newQuote = new Quote();
         // code to add new quote to document
     }
 
