@@ -10,25 +10,19 @@ public class CPHInline
     public class Quote {
         
         // Properties: captured at time of chat message //
-        [JsonPropertyName("CommandExecutorUsername")]
+        // not all of these properties will be stored in the quotes document
         public string CommandExecutorUsername {get; set;}
-        [JsonPropertyName("CommandExecutorUserId")]
         public string CommandExecutorUserId {get; set;}
-        [JsonPropertyName("MessageRawInput")]
         public string MessageRawInput {get; set;}        
-        [JsonPropertyName("MessageTimestamp")]
         public DateTimeOffset MessageTimestamp {get; set;}
+        public string GameCategory {get; set;}
 
         // Properties: derived from captured properties //
-        [JsonPropertyName("QuoteeUsername")]
         public string QuoteeUsername {get; set;}
-        [JsonPropertyName("QuoteText")]
-        public string QuoteText {get; set;}
-        [JsonPropertyName("ModeratorUsername")]
         public string ModeratorUsername {get; set;}
-        
+        public string QuoteText {get; set;}
+
         // Properties: remaining quote document fields //
-        [JsonPropertyName("QuoteId")]
         public string QuoteId {get; set;}        
     }
 
@@ -41,7 +35,7 @@ public class CPHInline
     public string CommandExecutorUserId() {
         string commandExecutorUserId = "";
         if (args.TryGetValue("userId", out object CommandExecutorUserIdObject)) {commandExecutorUserId = CommandExecutorUserIdObject.ToString();}
-        else {/* send message to log */}
+        else {CPH.SendMessage("Unable to retrieve userId from args.");}
         return commandExecutorUserId;}
 
     public string CommandExecutorUsername() {
@@ -65,11 +59,9 @@ public class CPHInline
 
     // Purpose: return the username of the moderator who executed the command
     // only to be run if we successfully reach the 'add quote' step, as at that point we have confirmed that command executor was a moderator
-    public string ModeratorUsername(string commandExecutorUsername)
-    {
+    public string ModeratorUsername(string commandExecutorUsername){
         string moderatorUsername = commandExecutorUsername;
-        return moderatorUsername;
-    }
+        return moderatorUsername;}
 
     // Purpose: return the username of the person who said the quote
     // second indice in array will be quotee; command syntax is '!quote add [person who said the quote]'
@@ -104,32 +96,66 @@ public class CPHInline
         return validatedSyntax;}
 
     // Purpose: execute next step based on validatedSyntax value; if invalid, indicate in chat; in valid, execute next relevant method
-    public void NextStepsForQuoteCommand(string validatedSyntax) {
-        
+    public void NextStepsForQuoteCommand(string validatedSyntax) {   
         if (validatedSyntax == "lockedToMods") {CPH.SendMessage("The '!quote add' command is locked to moderators.");}
-        
         if (validatedSyntax == "noValidatedSyntax") {CPH.SendMessage("Invalid command. Please use '!quote misc' or '!quote find [quote ID]'.");}      
         
         if ((validatedSyntax == "addQuote") || (validatedSyntax == "findMisc") || (validatedSyntax == "findId")) {
+                        
             string quotesDocumentTextContent = RetrieveFileTextContent();
+            List<Quote> quotesDocumentAsListOfQuoteObjects = DeserializeQuotesDocument(quotesDocumentTextContent); 
+            
             if (validatedSyntax == "addQuote") {
                 CPH.SendMessage("Calling method to add quote...");
-                AddQuoteToDocument(quotesDocumentTextContent);
-            }
+                AddQuoteToDocument(quotesDocumentAsListOfQuoteObjects, MessageTextAsArrayOfWords);}
             if (validatedSyntax == "findMisc") {
                 CPH.SendMessage("Calling method to find a misc quote...");
-                FindMiscQuote(quotesDocumentTextContent);
-            } 
+                FindMiscQuote(quotesDocumentTextContent);} 
             if (validatedSyntax == "findId") {
                 CPH.SendMessage("Calling method to locate a specific quote by Id...");
-                FindQuoteById(quoteId, quotesDocumentTextContent);
-            }
-        }
-    }
+                FindQuoteById(quoteId, quotesDocumentTextContent);}}}
 
     // - - - Methods: Interact with Quotes Document - - - //
 
-    // TO-DO
+    // Purpose: retrieve the text content of the quotes document and return it as a string
+        public string RetrieveFileTextContent() {
+        string pathToQuotesDocument = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
+        string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocument);
+        return quotesDocumentTextContent;}
+
+    // Purpose: deserialize that string into a list of quote objects and return it
+    public List<Quote> DeserializeQuotesDocument(string quotesDocumentTextContent) {
+        List<Quote> quotesDocumentAsListOfQuoteObjects = JsonSerializer.Deserialize<List<Quote>>(quotesDocumentTextContent);
+        return quotesDocumentAsListOfQuoteObjects;}
+
+    // Purpose: find the highest existing QuoteId in the list, then return the next one as a string
+    public int QuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
+        int mostRecentQuoteId = 0;
+        foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {if (quote.QuoteId > mostRecentQuoteId) {mostRecentQuoteId = quote.QuoteId;}}
+        return mostRecentQuoteId + 1;}
+
+    public void AddQuoteToDocument(List<Quote> quotesDocumentAsListOfQuoteObjects, string[] MessageTextAsArrayOfWords) {
+        
+        // Keys: QuoteId, MessageTimestamp, ModeratorUsername, QuoteeUsername, GameCategory, QuoteText 
+        QuoteId = QuoteId(quotesDocumentAsListOfQuoteObjects);
+        DateTimeOffset MessageTimestamp = MessageTimestamp();        
+        string ModeratorUsername = ModeratorUsername(CommandExecutorUsername());
+        string quoteeUsername = QuoteeUsername(MessageTextAsArrayOfWords);
+        string GameCategory = GameCategory();
+        string quoteContent = QuoteText(MessageTextAsArrayOfWords);}
+
+    public void FindQuoteById(string quoteId, string quotesDocumentTextContent) {
+        // code to find quote by ID
+        // search document for specific id 
+        // return just the formatted 'quote' value from the document and send to chat message
+    }
+
+    public void FindMiscQuote(string quotesDocumentTextContent) {
+        // code to find a random misc quote
+        // find most recent quote id in quotesDocumentTextContent
+        // generate a random number between 1 and most recent quote id (inclusive on both ends)
+        // return just the formatted 'quote' value from the document and send to chat message
+    }
 
     // - - - Method: Execute Quote Command - - - //
 
@@ -153,50 +179,3 @@ public class CPHInline
 		return true;
 	}
 }
-
-/*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    TO-DO: implement the following methods to interact with the quotes document
-
-    Purpose: retrieve the text content of the quotes document and return it as a string
-    public string RetrieveFileTextContent() {
-        string pathToQuotesDocument = @"C:\Users\RainstormWander\Stream\streamer-bot-1.0.1\data\quotes_custom.json";
-        string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocument);
-        return quotesDocumentTextContent;
-    }
-
-    public void AddQuoteToDocument(string quotesDocumentTextContent) {
-        Quote quote = new Quote();
-
-       /* 
-        int mostRecentQuoteId = 0;
-        var newQuoteObject = new quote
-
-            {
-                QuoteId = (mostRecentQuoteId + 1).ToString(),
-                QuoteeUsername = quoteeUsername,
-                QuoteContent = quoteContent,
-                ModeratorUsername = ModeratorUsername(CommandExecutorUsername()),
-                MessageTimestamp = MessageTimestamp(),
-                Summary = "Hot"
-            };
-
-        // code to add new quote to document
-        // find most recent quote id in quotesDocumentTextContent, increment by 1, assign to newQuote.QuoteId
-        // assign other properties to newQuote based on captured message inputs
-        // format 'quote' property to reflect how we want it to appear in the document
-        // format newQuoteObject with all the relevant info and append to quotesDocumentTextContent
-        // send new 'quote' to chat message
-    }
-
-    public void FindQuoteById(string quoteId, string quotesDocumentTextContent) {
-        // code to find quote by ID
-        // search document for specific id 
-        // return just the formatted 'quote' value from the document and send to chat message
-    }
-
-    public void FindMiscQuote(string quotesDocumentTextContent) {
-        // code to find a random misc quote
-        // find most recent quote id in quotesDocumentTextContent
-        // generate a random number between 1 and most recent quote id (inclusive on both ends)
-        // return just the formatted 'quote' value from the document and send to chat message
-    } */
