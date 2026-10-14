@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Collections.Generic;
 using System.Text.Json;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 public class CPHInline
@@ -120,6 +120,8 @@ public class CPHInline
                 FindMiscQuote(quotesDocumentAsListOfQuoteObjects);} 
             if (validatedSyntax == "findId") {
                 CPH.SendMessage("Calling method to locate a specific quote by Id...");
+                // the second indice in the array will be the quote id; command syntax is '!quote find [quote id]'
+                int quoteId = int.Parse(MessageTextAsArrayOfWords[1]);
                 FindQuoteById(quotesDocumentAsListOfQuoteObjects, quoteId);}}}
 
     // - - - Methods: Interact with Quotes Document - - - //
@@ -134,17 +136,23 @@ public class CPHInline
         List<Quote> quotesDocumentAsListOfQuoteObjects = JsonSerializer.Deserialize<List<Quote>>(quotesDocumentTextContent);
         return quotesDocumentAsListOfQuoteObjects;}
 
-    // Purpose: find the highest existing QuoteId in the list, then increment by 1 and return updated quote id to user with new quote
-    public int GetQuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
-        int mostRecentQuoteId = 0;
+    // Purpose: get current highest quote id in the quotes document
+    public int GetCurrentHighestQuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
+        int mostRecentQuoteId = 0; 
         foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {if (quote.QuoteId > mostRecentQuoteId) {mostRecentQuoteId = quote.QuoteId;}}
-        return mostRecentQuoteId + 1;}
+        return mostRecentQuoteId;}
+
+    // Purpose: find the highest existing QuoteId in the list, then increment by 1 and return updated quote id to user with new quote
+    public int GenerateNewQuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
+        int mostRecentQuoteId = GetCurrentHighestQuoteId(quotesDocumentAsListOfQuoteObjects);
+        int newQuoteId = mostRecentQuoteId + 1;
+        return newQuoteId;}
 
     // - - - Methods: Action Quotes Document (Add, Find ID, Find Misc) - - - //
 
     public void AddQuoteToDocument(List<Quote> quotesDocumentAsListOfQuoteObjects, string[] MessageTextAsArrayOfWords) {
         // Keys: QuoteId, MessageTimestamp, ModeratorUsername, QuoteeUsername, GameCategory, QuoteText 
-        int QuoteId = GetQuoteId(quotesDocumentAsListOfQuoteObjects);
+        int QuoteId = GenerateNewQuoteId(quotesDocumentAsListOfQuoteObjects);
         DateTimeOffset MessageTimestamp = GetMessageTimestamp();        
         string ModeratorUsername = GetModeratorUsername(GetCommandExecutorUsername());
         string quoteeUsername = GetQuoteeUsername(MessageTextAsArrayOfWords);
@@ -163,9 +171,18 @@ public class CPHInline
             string updatedJson = JsonSerializer.Serialize(quotesDocumentAsListOfQuoteObjects, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);}
         
-    public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId) {}
-    
-    public void FindMiscQuote(List<Quote> quotesDocumentAsListOfQuoteObjects) {} 
+    public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId){
+        foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {
+            if (quote.QuoteId == quoteId) {
+            CPH.SendMessage($"Quote {quote.QuoteId}: {quote.QuoteText} - {quote.QuoteeUsername} | {quote.GameCategory} | {quote.MessageTimestamp.ToString("MMMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture)} | Added by {quote.ModeratorUsername}.");
+            return;}}
+        CPH.SendMessage($"Quote {quoteId} not found.");}
+
+    public void FindMiscQuote(List<Quote> quotesDocumentAsListOfQuoteObjects){
+        Random random = new Random();
+        int randomIndex = random.Next(0, quotesDocumentAsListOfQuoteObjects.Count);
+        Quote quote = quotesDocumentAsListOfQuoteObjects[randomIndex];
+        CPH.SendMessage($"Quote {quote.QuoteId}: {quote.QuoteText} - {quote.QuoteeUsername} | {quote.GameCategory} | {quote.MessageTimestamp.ToString("MMMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture)} | Added by {quote.ModeratorUsername}.");}
 
     // - - - Method: Execute Quote Command - - - //
 
