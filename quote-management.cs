@@ -171,7 +171,8 @@ public class CPHInline
             
             quotesDocumentAsListOfQuoteObjects.Add(newQuote);
             string updatedJson = JsonConvert.SerializeObject(quotesDocumentAsListOfQuoteObjects, Formatting.Indented);
-            File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);}
+            File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);
+            CPH.SendMessage($"Quote {newQuote.QuoteId}: {newQuote.QuoteText} - {newQuote.QuoteeUsername} | {newQuote.GameCategory} | {newQuote.MessageTimestamp.ToString("MMMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture)} | Added by {newQuote.ModeratorUsername}.");}
         
     public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId){
         foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {
