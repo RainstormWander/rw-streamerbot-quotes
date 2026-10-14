@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 public class CPHInline
@@ -23,30 +25,30 @@ public class CPHInline
         public string QuoteText {get; set;}
 
         // Properties: remaining quote document fields //
-        public string QuoteId {get; set;}        
+        public int QuoteId {get; set;}        
     }
 
     // - - - Methods: Retrieve Message Inputs - - - //
 
-    public string MessageRawInput() {
+    public string GetMessageRawInput() {
         string messageRawInput = args["rawInput"].ToString();
         return messageRawInput;}
 
-    public string CommandExecutorUserId() {
+    public string GetCommandExecutorUserId() {
         string commandExecutorUserId = "";
         if (args.TryGetValue("userId", out object CommandExecutorUserIdObject)) {commandExecutorUserId = CommandExecutorUserIdObject.ToString();}
         else {CPH.SendMessage("Unable to retrieve userId from args.");}
         return commandExecutorUserId;}
 
-    public string CommandExecutorUsername() {
+    public string GetCommandExecutorUsername() {
         string commandExecutorUsername = args["userName"].ToString();
         return commandExecutorUsername;}
 
-    public string GameCategory() {
+    public string GetGameCategory() {
         CPH.TryGetArg("game", out string gameCategory);
         return gameCategory;}
 
-    public DateTimeOffset MessageTimestamp() {
+    public DateTimeOffset GetMessageTimestamp() {
         DateTimeOffset messageTimestamp = DateTimeOffset.Now;
         return messageTimestamp;}
 
@@ -59,18 +61,18 @@ public class CPHInline
 
     // Purpose: return the username of the moderator who executed the command
     // only to be run if we successfully reach the 'add quote' step, as at that point we have confirmed that command executor was a moderator
-    public string ModeratorUsername(string commandExecutorUsername){
+    public string GetModeratorUsername(string commandExecutorUsername){
         string moderatorUsername = commandExecutorUsername;
         return moderatorUsername;}
 
     // Purpose: return the username of the person who said the quote
     // second indice in array will be quotee; command syntax is '!quote add [person who said the quote]'
-    public string QuoteeUsername(string[] MessageTextAsArrayOfWords) {
+    public string GetQuoteeUsername(string[] MessageTextAsArrayOfWords) {
         string quoteeUsername = MessageTextAsArrayOfWords[1];
         return quoteeUsername;}
 
     // Purpose: return the text of the quote (i.e. everything after the quotee's username)
-    public string QuoteText(string[] MessageTextAsArrayOfWords) {
+    public string GetQuoteText(string[] MessageTextAsArrayOfWords) {
         // take the array of words we've made from the chat message and join all the words (on whitespace) into a string, except for the first two words
         // the first two words are the command and the quotee's username, so we want to skip those and just return everything else for the quote text
         string quoteText = string.Join(" ", MessageTextAsArrayOfWords, 2, MessageTextAsArrayOfWords.Length - 2);
@@ -96,7 +98,7 @@ public class CPHInline
         return validatedSyntax;}
 
     // Purpose: execute next step based on validatedSyntax value; if invalid, indicate in chat; in valid, execute next relevant method
-    public void NextStepsForQuoteCommand(string validatedSyntax) {   
+    public void NextStepsForQuoteCommand(string validatedSyntax, string[] MessageTextAsArrayOfWords) {   
         if (validatedSyntax == "lockedToMods") {CPH.SendMessage("The '!quote add' command is locked to moderators.");}
         if (validatedSyntax == "noValidatedSyntax") {CPH.SendMessage("Invalid command. Please use '!quote misc' or '!quote find [quote ID]'.");}      
         
@@ -110,10 +112,10 @@ public class CPHInline
                 AddQuoteToDocument(quotesDocumentAsListOfQuoteObjects, MessageTextAsArrayOfWords);}
             if (validatedSyntax == "findMisc") {
                 CPH.SendMessage("Calling method to find a misc quote...");
-                FindMiscQuote(quotesDocumentTextContent);} 
+                FindMiscQuote(quotesDocumentAsListOfQuoteObjects);} 
             if (validatedSyntax == "findId") {
                 CPH.SendMessage("Calling method to locate a specific quote by Id...");
-                FindQuoteById(quoteId, quotesDocumentTextContent);}}}
+                FindQuoteById(quotesDocumentAsListOfQuoteObjects, quoteId);}}}
 
     // - - - Methods: Interact with Quotes Document - - - //
 
@@ -129,7 +131,7 @@ public class CPHInline
         return quotesDocumentAsListOfQuoteObjects;}
 
     // Purpose: find the highest existing QuoteId in the list, then return the next one as a string
-    public int QuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
+    public int GetQuoteId(List<Quote> quotesDocumentAsListOfQuoteObjects) {
         int mostRecentQuoteId = 0;
         foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {if (quote.QuoteId > mostRecentQuoteId) {mostRecentQuoteId = quote.QuoteId;}}
         return mostRecentQuoteId + 1;}
@@ -137,38 +139,38 @@ public class CPHInline
     public void AddQuoteToDocument(List<Quote> quotesDocumentAsListOfQuoteObjects, string[] MessageTextAsArrayOfWords) {
         
         // Keys: QuoteId, MessageTimestamp, ModeratorUsername, QuoteeUsername, GameCategory, QuoteText 
-        QuoteId = QuoteId(quotesDocumentAsListOfQuoteObjects);
-        DateTimeOffset MessageTimestamp = MessageTimestamp();        
-        string ModeratorUsername = ModeratorUsername(CommandExecutorUsername());
-        string quoteeUsername = QuoteeUsername(MessageTextAsArrayOfWords);
-        string GameCategory = GameCategory();
-        string quoteContent = QuoteText(MessageTextAsArrayOfWords);}
+        QuoteId = GetQuoteId(quotesDocumentAsListOfQuoteObjects);
+        DateTimeOffset MessageTimestamp = GetMessageTimestamp();        
+        string ModeratorUsername = GetModeratorUsername(GetCommandExecutorUsername());
+        string quoteeUsername = GetQuoteeUsername(MessageTextAsArrayOfWords);
+        string GameCategory = GetGameCategory();
+        string quoteContent = GetQuoteText(MessageTextAsArrayOfWords);}
 
-    public void FindQuoteById(string quoteId, string quotesDocumentTextContent) {
+/*  public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId) {
         // code to find quote by ID
         // search document for specific id 
         // return just the formatted 'quote' value from the document and send to chat message
     }
 
-    public void FindMiscQuote(string quotesDocumentTextContent) {
+    public void FindMiscQuote(List<Quote> quotesDocumentAsListOfQuoteObjects) {
         // code to find a random misc quote
-        // find most recent quote id in quotesDocumentTextContent
+        // find most recent quote id in quotesDocumentAsListOfQuoteObjects
         // generate a random number between 1 and most recent quote id (inclusive on both ends)
         // return just the formatted 'quote' value from the document and send to chat message
-    }
+    } */
 
     // - - - Method: Execute Quote Command - - - //
 
     // Purpose: executes all relevant methods in correct sequence; this is the only thing we'll need to put in Execute() 
     public void ExecuteQuoteCommand() {
-        string username = CommandExecutorUsername();
-        string userId = CommandExecutorUserId();
-        string gameCategory = GameCategory();
-        string rawInput = MessageRawInput();
+        string username = GetCommandExecutorUsername();
+        string userId = GetCommandExecutorUserId();
+        string gameCategory = GetGameCategory();
+        string rawInput = GetMessageRawInput();
         bool userPermitted = IsUserPermittedToAddQuotes(userId);
         string[] MessageTextAsArrayOfWords = SplitMessageText(rawInput);
         string validatedSyntax = ReturnValidatedSyntax(MessageTextAsArrayOfWords, userPermitted);
-        NextStepsForQuoteCommand(validatedSyntax);
+        NextStepsForQuoteCommand(validatedSyntax, MessageTextAsArrayOfWords);
     }
 
     // - - - Execute Method - - - //
