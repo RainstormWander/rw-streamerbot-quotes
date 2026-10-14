@@ -125,12 +125,12 @@ public class CPHInline
     // - - - Methods: Interact with Quotes Document - - - //
 
     // Purpose: retrieve the text content of the quotes document and return it as a string
-        public string RetrieveFileTextContent() {
+    public string RetrieveFileTextContent() {
         string quotesDocumentTextContent = File.ReadAllText(pathToQuotesDocumentGlobal);
         return quotesDocumentTextContent;}
 
-    // Purpose: deserialize that string into a list of quote objects and return it
-    public List<Quote> DeserializeQuotesDocument(string quotesDocumentTextContent) {
+        // Purpose: deserialize that string into a list of quote objects and return it
+        public List<Quote> DeserializeQuotesDocument(string quotesDocumentTextContent) {
         List<Quote> quotesDocumentAsListOfQuoteObjects = JsonSerializer.Deserialize<List<Quote>>(quotesDocumentTextContent);
         return quotesDocumentAsListOfQuoteObjects;}
 
@@ -140,8 +140,9 @@ public class CPHInline
         foreach (Quote quote in quotesDocumentAsListOfQuoteObjects) {if (quote.QuoteId > mostRecentQuoteId) {mostRecentQuoteId = quote.QuoteId;}}
         return mostRecentQuoteId + 1;}
 
+    // - - - Methods: Action Quotes Document (Add, Find ID, Find Misc) - - - //
+
     public void AddQuoteToDocument(List<Quote> quotesDocumentAsListOfQuoteObjects, string[] MessageTextAsArrayOfWords) {
-        
         // Keys: QuoteId, MessageTimestamp, ModeratorUsername, QuoteeUsername, GameCategory, QuoteText 
         int QuoteId = GetQuoteId(quotesDocumentAsListOfQuoteObjects);
         DateTimeOffset MessageTimestamp = GetMessageTimestamp();        
@@ -159,23 +160,12 @@ public class CPHInline
             QuoteText = quoteContent};
             
             quotesDocumentAsListOfQuoteObjects.Add(newQuote);
-            
             string updatedJson = JsonSerializer.Serialize(quotesDocumentAsListOfQuoteObjects, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);
-       }
-
-/*  public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId) {
-        // code to find quote by ID
-        // search document for specific id 
-        // return just the formatted 'quote' value from the document and send to chat message
-    }
-
-    public void FindMiscQuote(List<Quote> quotesDocumentAsListOfQuoteObjects) {
-        // code to find a random misc quote
-        // find most recent quote id in quotesDocumentAsListOfQuoteObjects
-        // generate a random number between 1 and most recent quote id (inclusive on both ends)
-        // return just the formatted 'quote' value from the document and send to chat message
-    } */
+            File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);}
+        
+    public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId) {}
+    
+    public void FindMiscQuote(List<Quote> quotesDocumentAsListOfQuoteObjects) {} 
 
     // - - - Method: Execute Quote Command - - - //
 
