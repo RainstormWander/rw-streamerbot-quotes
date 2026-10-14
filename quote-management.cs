@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 public class CPHInline
 {
@@ -17,7 +16,6 @@ public class CPHInline
     public class Quote {
         
         // Properties: captured at time of chat message //
-        // not all of these properties will be stored in the quotes document
         public string CommandExecutorUsername {get; set;}
         public string CommandExecutorUserId {get; set;}
         public string MessageRawInput {get; set;}        
@@ -134,7 +132,7 @@ public class CPHInline
 
         // Purpose: deserialize that string into a list of quote objects and return it
         public List<Quote> DeserializeQuotesDocument(string quotesDocumentTextContent) {
-        List<Quote> quotesDocumentAsListOfQuoteObjects = JsonSerializer.Deserialize<List<Quote>>(quotesDocumentTextContent);
+        List<Quote> quotesDocumentAsListOfQuoteObjects = JsonConvert.DeserializeObject<List<Quote>>(quotesDocumentTextContent);
         return quotesDocumentAsListOfQuoteObjects;}
 
     // Purpose: get current highest quote id in the quotes document
@@ -161,6 +159,9 @@ public class CPHInline
         string quoteContent = GetQuoteText(MessageTextAsArrayOfWords);
         
         var newQuote = new Quote {
+            CommandExecutorUsername = GetCommandExecutorUsername(),
+            CommandExecutorUserId = GetCommandExecutorUserId(),
+            MessageRawInput = GetMessageRawInput(),
             QuoteId = QuoteId,
             MessageTimestamp = MessageTimestamp,
             ModeratorUsername = ModeratorUsername,
@@ -169,7 +170,7 @@ public class CPHInline
             QuoteText = quoteContent};
             
             quotesDocumentAsListOfQuoteObjects.Add(newQuote);
-            string updatedJson = JsonSerializer.Serialize(quotesDocumentAsListOfQuoteObjects, new JsonSerializerOptions { WriteIndented = true });
+            string updatedJson = JsonConvert.SerializeObject(quotesDocumentAsListOfQuoteObjects, Formatting.Indented);
             File.WriteAllText(pathToQuotesDocumentGlobal, updatedJson);}
         
     public void FindQuoteById(List<Quote> quotesDocumentAsListOfQuoteObjects, int quoteId){
