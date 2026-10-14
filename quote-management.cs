@@ -121,8 +121,9 @@ public class CPHInline
             if (validatedSyntax == "findId") {
                 CPH.SendMessage("Calling method to locate a specific quote by Id...");
                 // the second indice in the array will be the quote id; command syntax is '!quote find [quote id]'
-                int quoteId = int.Parse(MessageTextAsArrayOfWords[1]);
-                FindQuoteById(quotesDocumentAsListOfQuoteObjects, quoteId);}}}
+                if (MessageTextAsArrayOfWords.Length > 1 && int.TryParse(MessageTextAsArrayOfWords[1], out int quoteId)) {
+                    FindQuoteById(quotesDocumentAsListOfQuoteObjects, quoteId); } 
+                    else {CPH.SendMessage("Quote ID is not a valid number.");}}}}
 
     // - - - Methods: Interact with Quotes Document - - - //
 
