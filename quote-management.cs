@@ -98,7 +98,7 @@ public class CPHInline
                 CPH.SendMessage("Calling method to find a misc quote...");
                 FindMiscQuote(quotesDocumentTextContent);
             } 
-        if (validatedSyntax == "findId") {
+            if (validatedSyntax == "findId") {
                 CPH.SendMessage("Calling method to locate a specific quote by Id...");
                 FindQuoteById(quoteId, quotesDocumentTextContent);
             }
@@ -115,16 +115,26 @@ public class CPHInline
     }
 
     public void AddQuoteToDocument(string quotesDocumentTextContent) {
-        Quote newQuote = new Quote();
+        Quote newQuoteObject = new Quote();
         // code to add new quote to document
+        // find most recent quote id in quotesDocumentTextContent, increment by 1, assign to newQuote.QuoteId
+        // assign other properties to newQuote based on captured message inputs
+        // format 'quote' property to reflect how we want it to appear in the document
+        // format newQuoteObject with all the relevant info and append to quotesDocumentTextContent
+        // send new 'quote' to chat message
     }
 
     public void FindQuoteById(string quoteId, string quotesDocumentTextContent) {
         // code to find quote by ID
+        // search document for specific id 
+        // return just the formatted 'quote' value from the document and send to chat message
     }
 
     public void FindMiscQuote(string quotesDocumentTextContent) {
         // code to find a random misc quote
+        // find most recent quote id in quotesDocumentTextContent
+        // generate a random number between 1 and most recent quote id (inclusive on both ends)
+        // return just the formatted 'quote' value from the document and send to chat message
     }
 
     // - - - Method: Execute Quote Command - - - //
