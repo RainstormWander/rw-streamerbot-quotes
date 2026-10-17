@@ -25,7 +25,7 @@ Create your *quotes-custom.json* file (or whatever you'd like to title it).
 
 Replace this value in *quote-management.cs* with the path to your own file.
 ```csharp
-const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
+const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot-quotes\quotes-custom.json";
 ```
 
 - **Command:** !quote
