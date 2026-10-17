@@ -9,7 +9,7 @@ public class CPHInline
 
     // - - - Global Variables - - - //
 
-    const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
+    const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot-quotes\quotes-custom.json";
 
     // - - - Classes - - - //
 
