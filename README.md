@@ -23,7 +23,7 @@ Create your *quotes-custom.json* file (or whatever you'd like to title it).
 - Required file type extension: .json.
 - Required text content when you first create the file (just a set of square brackets): `[]`
 
-Replace this value in quote-management.cs with the path to your own file.
+Replace this value in *quote-management.cs* with the path to your own file.
 ```csharp
 const string pathToQuotesDocumentGlobal = @"C:\Users\RainstormWander\source\repos\rw-streamerbot\quotes-custom.json";
 ```
