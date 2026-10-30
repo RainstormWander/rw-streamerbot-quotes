@@ -70,9 +70,10 @@ public class CPHInline
 
     // Purpose: return the username of the person who said the quote
     // second indice in array will be quotee; command syntax is '!quote add [person who said the quote]'
+    // trim whitespace from quoteeUsername, and remove any at symbol(s) at the start of quoteeUsername
     public string GetQuoteeUsername(string[] MessageTextAsArrayOfWords) {
         string quoteeUsername = MessageTextAsArrayOfWords[1];
-        return quoteeUsername;}
+        return quoteeUsername.Trim().TrimStart('@');}
 
     // Purpose: return the text of the quote (i.e. everything after the quotee's username)
     public string GetQuoteText(string[] MessageTextAsArrayOfWords) {
@@ -111,13 +112,13 @@ public class CPHInline
             List<Quote> quotesDocumentAsListOfQuoteObjects = DeserializeQuotesDocument(quotesDocumentTextContent); 
             
             if (validatedSyntax == "addQuote") {
-                CPH.SendMessage("Calling method to add quote...");
+                // CPH.SendMessage("Calling method to add quote...");
                 AddQuoteToDocument(quotesDocumentAsListOfQuoteObjects, MessageTextAsArrayOfWords);}
             if (validatedSyntax == "findMisc") {
-                CPH.SendMessage("Calling method to find a misc quote...");
+                // CPH.SendMessage("Calling method to find a misc quote...");
                 FindMiscQuote(quotesDocumentAsListOfQuoteObjects);} 
             if (validatedSyntax == "findId") {
-                CPH.SendMessage("Calling method to locate a specific quote by Id...");
+                // CPH.SendMessage("Calling method to locate a specific quote by Id...");
                 // the second indice in the array will be the quote id; command syntax is '!quote find [quote id]'
                 if (MessageTextAsArrayOfWords.Length > 1 && int.TryParse(MessageTextAsArrayOfWords[1], out int quoteId)) {
                     FindQuoteById(quotesDocumentAsListOfQuoteObjects, quoteId); } 
