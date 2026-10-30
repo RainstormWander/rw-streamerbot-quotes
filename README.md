@@ -9,8 +9,6 @@ Adding quotes is locked to moderators; anyone can use the other two commands.
 
 ## Known Limitations
 
-Still a work-in-progress.
-
 You'll need to create your quotes file manually before you start using the quote system; the script will not create the file for you and will crash if the file doesn't exist. 
 
 ## To-Do
